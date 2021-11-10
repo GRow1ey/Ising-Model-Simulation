@@ -9,6 +9,7 @@ class SpinLattice():
   def __init__(self, lattice_dimensions, temperature, J=1.0, nsweeps=10000):
     self.lattice_dimensions = lattice_dimensions
     self.spin_lattice = np.ones((lattice_dimensions, lattice_dimensions), dtype=float)
+    self.previous_spin_lattice = []
     self.temperature = temperature
     self.J = J
     self.nsweeps = nsweeps
@@ -29,11 +30,23 @@ class SpinLattice():
   def set_spin_lattice(self, spin_lattice):
     """Method to update the n x n spin lattice."""
     self.spin_lattice = spin_lattice
+    
+  def get_previous_spin_lattice(self):
+    """Method to return the previous spin lattice."""
+    return self.previous_spin_lattice
+  
+  def set_previous_spin_lattice(self, previous_spin_lattice):
+    """Method to update the previous spin lattice attribute."""
+    self.previous_spin_lattice = previous_spin_lattice
 
   def get_temperature(self):
     """Method to return the temperature of the system."""
     return self.temperature
 
+  def set_temperature(self, temperature):
+    """Method to update the temperature attribute."""
+    self.temperature = temperature
+    
   def get_J(self):
     """Method to return J."""
     return self.J
@@ -73,6 +86,17 @@ class SpinLattice():
   def set_jtrial_1(self, jtrial_1):
     """Method to update thhe jtrial_1 attribute."""
     self.jtrial_1 = jtrial_1
+    
+  def get_initial_state(self):
+    """Method to return the initial state attribute."""
+    return self.initial_state
+  
+  def update_initial_state(self):
+    """
+    Method to change the initial state to false after the 
+    first iteration of calculating observables.
+    """
+    self.initial_state = False
       
   def initialise_spin_lattice_kawasaki(self):
         """
@@ -378,3 +402,76 @@ class SpinLattice():
         plt.draw()
         plt.pause(0.001)
     
+  def calculate_observables_glauber(self):
+    """"""
+    nsweeps = self.get_nsweeps()
+    lattice_dimensions = self.get_lattice_dimensions()
+    temperature = self.get_temperature()
+    spin_lattice = self.get_spin_lattice()
+    initial_state = self.get_initial_state()
+    
+    mean_total_energies = []
+    magnetisations = []
+    
+    if initial_state:
+      # Calculate the mean total energy and magnetisation of
+      # the initial lattice.
+      current_energy = self.calculate_mean_total_energy()
+      current_magnetisation = self.calculate_magnetisation()
+      
+      # Append the initial mean total energy and magnetisation,
+      # to the list of mean total energies and magnetisations.
+      mean_total_energies.append(current_energy)
+      magnetisations.append(current_magnetisation)
+    else:
+      # Set the previous spin lattice equal to the spin
+      # lattice used in the previous calculation of
+      # observables if this is not the initial state.
+      self.set_previous_spin_lattice(spin_lattice)
+    
+    for sweep in range(nsweeps):
+      for row in range(lattice_dimensions):
+        for column in range(lattice_dimensions):
+          self.select_candidate_state_kawasaki()
+          energy_difference = self.calculate_energy_difference_kawasaki()
+          self.metropolis_algorithm_kawasaki()
+          
+      if not np.mod(sweep, 10):
+        # Calculate the mean total energy and magnetisation 
+        # of the current state.
+        current_energy = self.calculate_mean_total_energy()
+        current_magnetisation = self.calculate_magnetisation()
+        
+        # Append the current mean total energy and magnetisation
+        # to the lists of mean total energies and magnetisations.
+        mean_total_energies.append(current_energy)
+        magnetisations.append(current_magnetisation)
+        
+    # Store the mean total energies and magnetisations in a data
+    # file.
+    with open("glauber_observables_data" + str(temperature) + ".dat") as file_object:
+      file_object.write(mean_total_energies)
+      file_object.write(magnetisations)
+      
+      
+        
+    
+    
+    
+    
+  def calculate_observables_kawasaki(self):
+    """"""
+    
+  def calculate_observables(self):
+    """"""
+    lattice_dimensions = self.get_lattice_dimensions()
+    susceptibilities = []
+    energies = []
+    scaled_heat_capacities = []
+    absolute_magnetisation = []
+    
+    for temperature in np.arange(1, 3, 0.1):
+      self.set_temperature(temperature)
+      previous_state = self.get_previous_state()
+      
+      
