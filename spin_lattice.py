@@ -6,7 +6,7 @@ matplotlib.rcParams['text.usetex'] = True
 class SpinLattice():
   """A class to represent the lattice of spins in the Ising Model."""
   
-  def __init__(self, lattice_dimensions, temperature, J=1.0, nsweeps=10000):
+  def __init__(self, lattice_dimensions, temperature=1.0, J=1.0, nsweeps=10000):
     self.lattice_dimensions = lattice_dimensions
     self.spin_lattice = np.ones((lattice_dimensions, lattice_dimensions), dtype=float)
     self.previous_spin_lattice = []
@@ -423,6 +423,9 @@ class SpinLattice():
       # to the list of mean total energies and magnetisations.
       mean_total_energies.append(current_energy)
       magnetisations.append(current_magnetisation)
+      
+      self.update_initial_state()
+      
     else:
       # Set the previous spin lattice equal to the spin
       # lattice used in the previous calculation of
@@ -433,7 +436,7 @@ class SpinLattice():
       for row in range(lattice_dimensions):
         for column in range(lattice_dimensions):
           self.select_candidate_state_kawasaki()
-          energy_difference = self.calculate_energy_difference_kawasaki()
+          self.calculate_energy_difference_kawasaki()
           self.metropolis_algorithm_kawasaki()
           
       if not np.mod(sweep, 10):
@@ -462,7 +465,7 @@ class SpinLattice():
   def calculate_observables_kawasaki(self):
     """"""
     
-  def calculate_observables(self):
+  def calculate_observables(self, dynamical_rule):
     """"""
     lattice_dimensions = self.get_lattice_dimensions()
     susceptibilities = []
@@ -472,6 +475,9 @@ class SpinLattice():
     
     for temperature in np.arange(1, 3, 0.1):
       self.set_temperature(temperature)
-      previous_state = self.get_previous_state()
+      if dynamical_rule == "Glauber":
+          self.calculate_observables_glauber()
+      elif dynamical_rule == "Kawasaki":
+          self.calculate_observables_kawasaki()
       
       
