@@ -2,11 +2,12 @@ import numpy as np
 import matplotlib
 import matplotlib.pyplot as plt
 matplotlib.rcParams['text.usetex'] = True
+import pandas as pd
 
 class SpinLattice():
   """A class to represent the lattice of spins in the Ising Model."""
   
-  def __init__(self, lattice_dimensions, temperature, J=1.0, nsweeps=10000):
+  def __init__(self, lattice_dimensions, temperature=1.0, J=1.0, nsweeps=10000):
     self.lattice_dimensions = lattice_dimensions
     self.spin_lattice = np.ones((lattice_dimensions, lattice_dimensions), dtype=float)
     self.previous_spin_lattice = []
@@ -142,8 +143,8 @@ class SpinLattice():
     # Calculate the energy of the current spin configuration.
     return -J * spin_lattice[itrial, jtrial] * sum_nearest_neighbours_spins
   
-  def calculate_mean_total_energy(self):
-    """Calculate the mean total energy of the lattice of spins."""
+  def calculate_total_energy(self):
+    """Calculate the total energy of the lattice of spins."""
     lattice_dimensions = self.get_lattice_dimensions()
     total_energy = 0
     
@@ -402,6 +403,15 @@ class SpinLattice():
         plt.draw()
         plt.pause(0.001)
     
+  def calculate_error(self):
+    """A method to calculate the error on a set of data using the jackknife resampling."""
+    
+  def calculate_scaled_specific_heat(self):
+    """"""
+    
+  def calculate_susceptibility(self):
+    """"""
+    
   def calculate_observables_glauber(self):
     """"""
     nsweeps = self.get_nsweeps()
@@ -410,20 +420,84 @@ class SpinLattice():
     spin_lattice = self.get_spin_lattice()
     initial_state = self.get_initial_state()
     
-    mean_total_energies = []
+    total_energies = []
     magnetisations = []
     
     if initial_state:
+      print("I'm an initial state.")
       # Calculate the mean total energy and magnetisation of
       # the initial lattice.
-      current_energy = self.calculate_mean_total_energy()
+      current_energy = self.calculate_total_energy()
       current_magnetisation = self.calculate_magnetisation()
       
       # Append the initial mean total energy and magnetisation,
       # to the list of mean total energies and magnetisations.
-      mean_total_energies.append(current_energy)
+      total_energies.append(current_energy)
       magnetisations.append(current_magnetisation)
+      
+      self.update_initial_state()
+      
     else:
+      print("I'm not an initial state.")
+      # Set the previous spin lattice equal to the spin
+      # lattice used in the previous calculation of
+      # observables if this is not the initial state.
+      #self.set_previous_spin_lattice(spin_lattice)
+    
+    for sweep in range(nsweeps):
+      for row in range(lattice_dimensions):
+        for column in range(lattice_dimensions):
+          self.select_candidate_state_glauber()
+          self.calculate_energy_difference_glauber()
+          self.metropolis_algorithm_glauber()
+          
+      if not np.mod(sweep, 10):
+        # Calculate the mean total energy and magnetisation 
+        # of the current state.
+        current_energy = self.calculate_total_energy()
+        current_magnetisation = self.calculate_magnetisation()
+        
+        # Append the current mean total energy and magnetisation
+        # to the lists of mean total energies and magnetisations.
+        total_energies.append(current_energy)
+        magnetisations.append(current_magnetisation)
+        
+    mean_total_energy_error = 0 
+    # write method to calculate error (jackknife or bootstrap)
+    mean_magnetisation_error = 0 
+    # write method to calculate error (jackknife or bootstrap)
+    # scaled_specific_heat = 0
+    # susceptibility = 0
+    mean_total_energy = np.mean(np.array(total_energies))
+    mean_magnetisation = np.mean(np.array(magnetisations))
+      
+    print("Done: " + str(temperature))
+    
+    return mean_total_energy, mean_total_energy_error, mean_magnetisation, mean_magnetisation_error, # scaled_specific_heat, susceptibility
+    
+  def calculate_observables_kawasaki(self):
+    """"""
+    nsweeps = self.get_nsweeps()
+    lattice_dimensions = self.get_lattice_dimensions()
+    temperature = self.get_temperature()
+    spin_lattice = self.get_spin_lattice()
+    initial_state = self.get_initial_state()
+    
+    total_energies = []
+    
+    if initial_state:
+      print("I'm an initial state.")
+      # Calculate the mean total energy of the initial lattice.
+      current_energy = self.calculate_total_energy()
+      
+      # Append the initial mean total energy to the list of 
+      # mean total energies 
+      total_energies.append(current_energy)
+      
+      self.update_initial_state()
+      
+    else:
+      print("I'm not an initial state.")
       # Set the previous spin lattice equal to the spin
       # lattice used in the previous calculation of
       # observables if this is not the initial state.
@@ -433,45 +507,85 @@ class SpinLattice():
       for row in range(lattice_dimensions):
         for column in range(lattice_dimensions):
           self.select_candidate_state_kawasaki()
-          energy_difference = self.calculate_energy_difference_kawasaki()
+          self.calculate_energy_difference_kawasaki()
           self.metropolis_algorithm_kawasaki()
           
       if not np.mod(sweep, 10):
         # Calculate the mean total energy and magnetisation 
         # of the current state.
-        current_energy = self.calculate_mean_total_energy()
-        current_magnetisation = self.calculate_magnetisation()
+        current_energy = self.calculate_total_energy()
         
         # Append the current mean total energy and magnetisation
         # to the lists of mean total energies and magnetisations.
-        mean_total_energies.append(current_energy)
-        magnetisations.append(current_magnetisation)
+        total_energies.append(current_energy)
         
-    # Store the mean total energies and magnetisations in a data
-    # file.
-    with open("glauber_observables_data" + str(temperature) + ".dat") as file_object:
-      file_object.write(mean_total_energies)
-      file_object.write(magnetisations)
+    mean_total_energy = np.mean(total_energies)
+    mean_total_energy_error = 0 
+    # write method to calculate error (jackknife or bootstrap)
+    # scaled_specific_heat = 0
       
-      
-        
+    print("Done: " + temperature)
     
+    return mean_total_energy, mean_total_energy_error, # scaled_specific_heat
     
-    
-    
-  def calculate_observables_kawasaki(self):
-    """"""
-    
-  def calculate_observables(self):
+  def calculate_observables(self, dynamical_rule):
     """"""
     lattice_dimensions = self.get_lattice_dimensions()
     susceptibilities = []
-    energies = []
+    mean_total_energies = []
+    mean_total_energies_errors = []
+    mean_magnetisations = []
+    mean_magnetisations_errors = []
     scaled_heat_capacities = []
     absolute_magnetisation = []
     
-    for temperature in np.arange(1, 3, 0.1):
+    for temperature in np.arange(1, 3.1, 0.1):
       self.set_temperature(temperature)
-      previous_state = self.get_previous_state()
+      if dynamical_rule == "Glauber":
+          print(temperature)
+          mean_total_energy, mean_total_energy_error, mean_magnetisation, mean_magnetisation_error = self.calculate_observables_glauber()
+          
+          mean_total_energies.append(mean_total_energy)
+          mean_total_energies_errors.append(mean_total_energy_error)
+          mean_magnetisations.append(mean_magnetisation)
+          mean_magnetisations_errors.append(mean_magnetisation_error)
+      elif dynamical_rule == "Kawasaki":
+          mean_total_energy, mean_total_energy_error = self.calculate_observables_kawasaki()
+          
+          mean_total_energies.append(mean_total_energy)
+          mean_total_energies_errors.append(mean_total_energy_error)
       
+    if dynamical_rule == "Glauber":
+      observables_dictionary = {"Temperatures": np.arange(1, 3.1, 0.1),
+                              "Mean Total Energies": mean_total_energies,
+                              "Mean Total Energies Errors": mean_magnetisations_errors,
+                              "Mean Magnetisations": mean_magnetisations,
+                              "Mean Magnetisations Errors": mean_magnetisations_errors,
+                              }
+      observables_dataframe = pd.DataFrame.from_dict(observables_dictionary)
+      observables_dataframe.to_csv("Glauber_Observables/glauber_observables_data.csv")
+    elif dynamical_rule == "Kawasaki":
+      observables_dictionary = {"Temperatures": np.arange(1, 3.1, 0.1),
+                              "Mean Total Energies": mean_total_energies,
+                              "Mean Total Energies Errors": mean_magnetisations_errors,
+                              }
+      observables_dataframe = pd.DataFrame.from_dict(observables_dictionary)
+      observables_dataframe.to_csv("Kawasaki_Observables/kawasaki_observables_data.csv")
       
+  def plot_mean_energy_against_temperature(self, dynamical_rule):
+    """Plot the mean energy against temperature."""
+    temperatures = []
+    mean_energies = []
+    if dynamical_rule == "Glauber":
+      observables_data = pd.read_csv("Glauber_Observables/glauber_observables_data.csv")
+      temperatures = observables_data["Temperatures"]
+      mean_energies = observables_data["Mean Total Energies"]
+    elif dynamical_rule == "Kawasaki":
+      observables_data = pd.read_csv("Kawasaki_Obervables/kawasaki_observables_data.csv")
+      temperatures = observables_data["Temperatures"]
+      mean_energies = observables_data["Mean Total Energies"]
+    plt.title('Mean Energy against Temperature for Glauber Dynamics')
+    plt.xlabel('Temperature, T')
+    plt.ylabel('Mean Energy, $\displaystyle\langle E \\rangle$')
+    plt.plot(temperatures, mean_energies)
+    plt.show()
