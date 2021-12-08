@@ -578,7 +578,7 @@ class SpinLattice():
     magnetisations_per_spin_values = pd.DataFrame.from_dict(magnetisations_per_spin_dict)
     magnetisations_per_spin_values.to_csv("Absolute_Magnetisations_Per_Spin/absolute_magnetisations_per_spin_for_temperaterature_" + str(np.round(temperature, 2)) + ".txt")
     
-    return mean_total_energy_per_spin, mean_total_energy_error_per_spin, mean_magnetisation_per_spin, mean_magnetisation_error_per_spin, scaled_specific_heat_capacity_per_spin, susceptibility_per_spin 
+    return mean_total_energy_per_spin, mean_total_energy_error_per_spin, mean_magnetisation_per_spin, mean_magnetisation_error_per_spin, scaled_specific_heat_capacity_per_spin, susceptibility_per_spin
   
   def calculate_observables_kawasaki(self):
     """"""
