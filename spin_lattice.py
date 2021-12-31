@@ -22,7 +22,7 @@ class SpinLattice():
     self.initial_state = True
     self.with_auto_correlation_times_condition = with_auto_correlation_times_condition
     self.auto_correlation_time = 0
-    
+  
   def get_lattice_dimensions(self):
     """Method to return the dimensions of the n x n spin lattice."""
     return self.lattice_dimensions
@@ -490,7 +490,14 @@ class SpinLattice():
           self.metropolis_algorithm_glauber()
       # if not np.mod(sweep, 10) and sweep > 400: 
       #if calculate_auto_correlation_times_decision:
-      if sweep > 400:
+      
+      # Write the positions and spin values of the lattice
+      # to a data file every ten sweeps.
+      if not np.mod(sweep, 10) and sweep > 400: 
+        with open("Spins_Data/Spins_Data_" + str(temperature) + "/spins_glauber_" + str(np.round(temperature, 3)) + "_sweeps=" + str(sweep) + ".dat", "a") as file_object:
+          for row in range(lattice_dimensions):
+            for column in range(lattice_dimensions):
+              file_object.write("%d %d %lf\n" % (row, column, spin_lattice[row, column]))
         # Calculate the mean total energy and magnetisation 
         # of the current state.
         current_energy = self.calculate_total_energy()
@@ -641,11 +648,12 @@ class SpinLattice():
     with_auto_correlation_times_condition = self.get_with_auto_correlation_times_condition()
     
     if with_auto_correlation_times_condition:
-      auto_correlation_times = pd.read_csv("Auto_Correlation_Times/auto_correlation_times.csv")
-    for index, temperature in enumerate(np.arange(1.0, 3.55, 0.01)):
+      auto_correlation_times = pd.read_csv("Auto_Correlation_Times/auto_correlation_times.csv")["Auto Correlation Times"].to_numpy()
+    for index, temperature in enumerate(np.linspace(1.0, 3.54, 21)):
       self.set_temperature(temperature)
       if with_auto_correlation_times_condition:
-        self.set_auto_correlation_time(int(auto_correlation_times[index]))
+        self.set_auto_correlation_time(auto_correlation_times[index])
+        print(auto_correlation_times[index])
       if dynamical_rule == "Glauber":
         if with_auto_correlation_times_condition:
           mean_total_energy_per_spin, mean_total_energy_error_per_spin, mean_magnetisation_per_spin, mean_magnetisation_error_per_spin, scaled_specific_heat_capacity_per_spin, susceptibility_per_spin = self.calculate_observables_glauber_with_auto_correlation_times()
@@ -667,7 +675,7 @@ class SpinLattice():
           scaled_specific_heat_capacities_per_spin.append(scaled_specific_heat_capacity_per_spin)
           
     if dynamical_rule == "Glauber":
-      observables_dictionary = {"Temperatures": np.arange(1.0, 3.55, 0.01),
+      observables_dictionary = {"Temperatures": np.linspace(1.0, 3.54, 21),
                               "Mean Total Energies Per Spin" : mean_total_energies_per_spin,
                               "Mean Total Energies Errors Per Spin" : mean_total_energies_errors_per_spin,
                               "Mean Magnetisations Per Spin" : mean_magnetisations_per_spin,
@@ -680,7 +688,7 @@ class SpinLattice():
       observables_dataframe.to_csv("Glauber_Observables/glauber_observables_data.csv")
       
     elif dynamical_rule == "Kawasaki":
-      observables_dictionary = {"Temperatures": np.arange(1.0, 3.55, 0.01),
+      observables_dictionary = {"Temperatures": np.linspace(1.0, 3.54, 21),
                               "Mean Total Energies Per Spin": mean_total_energies_per_spin,
                               "Mean Total Energies Errors Per Spin": mean_total_energies_errors_per_spin,
                               "Scaled Specific Heat Capacities Per Spin": scaled_specific_heat_capacities_per_spin,
@@ -811,7 +819,7 @@ class SpinLattice():
     nsweeps = self.get_nsweeps()
     sweeps = np.arange(0, nsweeps-1)
     auto_correlation_times = []
-    for temperature in np.arange(1.00, 3.55, 0.01):
+    for temperature in np.linspace(1.00, 3.54, 21):
       correlation_values = self.calculate_correlation_function(temperature)
       popt = curve_fit(self.auto_correlation_time_exponential, sweeps, correlation_values)[0]
       tau = int(abs(1 / popt))

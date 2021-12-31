@@ -19,7 +19,6 @@ def main():
   ising_model = SpinLattice(lattice_dimensions, temperature)
   
   if dynamics_type == "Glauber":
-    print("Hello")
     ising_model.animate_ising_model_glauber()
   elif dynamics_type == "Kawasaki":
     ising_model.animate_ising_model_kawasaki()
