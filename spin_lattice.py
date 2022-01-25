@@ -455,7 +455,7 @@ class SpinLattice():
     mean_squared_energy = np.mean(np.square(energies))
     mean_energy_squared = np.square(np.mean(energies))
     
-    return (mean_squared_energy - mean_energy_squared) / lattice_dimensions * (temperature ** 2)
+    return (mean_squared_energy - mean_energy_squared) / ((lattice_dimensions**2) * (temperature ** 2))
     
     
   def calculate_susceptibility(self, magnetisations):
@@ -468,7 +468,7 @@ class SpinLattice():
     mean_squared_magnetisations = np.mean(np.square(magnetisations))
     squared_mean_magnetisations = np.square(np.mean(magnetisations))
     
-    return (mean_squared_magnetisations-squared_mean_magnetisations) / lattice_dimensions * temperature
+    return (mean_squared_magnetisations-squared_mean_magnetisations) / ((lattice_dimensions**2) * temperature)
     
     
   def calculate_observables_glauber_without_auto_correlation_times(self):
@@ -478,7 +478,6 @@ class SpinLattice():
     temperature = self.get_temperature()
     spin_lattice = self.get_spin_lattice()
     initial_state = self.get_initial_state()
-    
     total_energies = []
     magnetisations = []
     
@@ -493,8 +492,8 @@ class SpinLattice():
       
       # Write the positions and spin values of the lattice
       # to a data file every ten sweeps.
-      if not np.mod(sweep, 10) and sweep > 400: 
-        with open("Spins_Data/Spins_Data_" + str(temperature) + "/spins_glauber_" + str(np.round(temperature, 3)) + "_sweeps=" + str(sweep) + ".dat", "a") as file_object:
+      if sweep > 400:
+        with open("Spins_Data/Spins_Data_" + str(np.round(temperature, 2)) + "/spins_glauber_" + str(np.round(temperature, 2)) + "_sweeps=" + str(sweep) + ".dat", "a") as file_object:
           for row in range(lattice_dimensions):
             for column in range(lattice_dimensions):
               file_object.write("%d %d %lf\n" % (row, column, spin_lattice[row, column]))
@@ -511,27 +510,27 @@ class SpinLattice():
     
     mean_total_energy = np.mean(np.array(total_energies))
     mean_total_energy_error = self.calculate_error(np.array(total_energies))
-    mean_magnetisation = np.mean(np.array(magnetisations))
-    mean_magnetisation_error = self.calculate_error(np.array(magnetisations))
+    mean_absolute_magnetisation = np.mean(np.abs(np.array(magnetisations)))
+    mean_absolute_magnetisation_error = self.calculate_error(np.abs(np.array(magnetisations)))
     scaled_specific_heat_capacity = self.calculate_scaled_specific_heat_capacity(np.array(total_energies))
-    susceptibility = self.calculate_susceptibility(np.array(magnetisations))
+    susceptibility = self.calculate_susceptibility(np.abs(np.array(magnetisations)))
     
     # Divide the observables by the number of spins in the lattice
     # to give the values per spin.
     mean_total_energy_per_spin = mean_total_energy / (lattice_dimensions ** 2)
     mean_total_energy_error_per_spin = mean_total_energy_error /(lattice_dimensions ** 2)
-    mean_magnetisation_per_spin = mean_magnetisation / (lattice_dimensions ** 2)
-    mean_magnetisation_error_per_spin = mean_magnetisation_error / (lattice_dimensions ** 2)
-    scaled_specific_heat_capacity_per_spin = scaled_specific_heat_capacity /(lattice_dimensions ** 2)
+    mean_absolute_magnetisation_per_spin = mean_absolute_magnetisation / (lattice_dimensions ** 2)
+    mean_absolute_magnetisation_error_per_spin = mean_absolute_magnetisation_error / (lattice_dimensions ** 2)
+    absolute_magnetisations_per_spin = np.abs(np.array(magnetisations)) / (lattice_dimensions ** 2)
+    scaled_specific_heat_capacity_per_spin = scaled_specific_heat_capacity
     susceptibility_per_spin = susceptibility / (lattice_dimensions ** 2)
-    magnetisations_per_spin = np.abs(np.array(magnetisations)) / (lattice_dimensions ** 2)
     
-    magnetisations_per_spin_dict = {"Absolute Magnetisations Per Spin" : magnetisations_per_spin
+    absolute_magnetisations_per_spin_dict = {"Absolute Magnetisations Per Spin" : absolute_magnetisations_per_spin
     }
-    magnetisations_per_spin_values = pd.DataFrame.from_dict(magnetisations_per_spin_dict)
-    magnetisations_per_spin_values.to_csv("Absolute_Magnetisations_Per_Spin/absolute_magnetisations_per_spin_for_temperaterature_" + str(np.round(temperature, 2)) + ".txt")
+    absolute_magnetisations_per_spin_values = pd.DataFrame.from_dict(absolute_magnetisations_per_spin_dict)
+    absolute_magnetisations_per_spin_values.to_csv("Absolute_Magnetisations_Per_Spin/absolute_magnetisations_per_spin_for_temperaterature_" + str(np.round(temperature, 2)) + ".txt")
     
-    return mean_total_energy_per_spin, mean_total_energy_error_per_spin, mean_magnetisation_per_spin, mean_magnetisation_error_per_spin, scaled_specific_heat_capacity_per_spin, susceptibility_per_spin
+    return mean_total_energy_per_spin, mean_total_energy_error_per_spin, mean_absolute_magnetisation_per_spin, mean_absolute_magnetisation_error_per_spin, scaled_specific_heat_capacity_per_spin, susceptibility_per_spin
     
   def calculate_observables_glauber_with_auto_correlation_times(self):
     """"""
@@ -552,7 +551,7 @@ class SpinLattice():
           self.calculate_energy_difference_glauber()
           self.metropolis_algorithm_glauber()
 
-      if sweep > 400 and np.mod(sweep, auto_correlation_time):
+      if sweep > 400 and not np.mod(sweep, auto_correlation_time):
         # Calculate the mean total energy and magnetisation 
         # of the current state.
         current_energy = self.calculate_total_energy()
@@ -565,27 +564,27 @@ class SpinLattice():
     
     mean_total_energy = np.mean(np.array(total_energies))
     mean_total_energy_error = self.calculate_error(np.array(total_energies))
-    mean_magnetisation = np.mean(np.array(magnetisations))
-    mean_magnetisation_error = self.calculate_error(np.array(magnetisations))
+    mean_absolute_magnetisation = np.mean(np.abs(np.array(magnetisations)))
+    mean_absolute_magnetisation_error = self.calculate_error(np.abs(np.array(magnetisations)))
     scaled_specific_heat_capacity = self.calculate_scaled_specific_heat_capacity(np.array(total_energies))
-    susceptibility = self.calculate_susceptibility(np.array(magnetisations))
+    susceptibility = self.calculate_susceptibility(np.abs(np.array(magnetisations)))
     
     # Divide the observables by the number of spins in the lattice
     # to give the values per spin.
     mean_total_energy_per_spin = mean_total_energy / (lattice_dimensions ** 2)
     mean_total_energy_error_per_spin = mean_total_energy_error /(lattice_dimensions ** 2)
-    mean_magnetisation_per_spin = mean_magnetisation / (lattice_dimensions ** 2)
-    mean_magnetisation_error_per_spin = mean_magnetisation_error / (lattice_dimensions ** 2)
-    scaled_specific_heat_capacity_per_spin = scaled_specific_heat_capacity /(lattice_dimensions ** 2)
+    mean_absolute_magnetisation_per_spin = mean_absolute_magnetisation / (lattice_dimensions ** 2)
+    mean_absolute_magnetisation_error_per_spin = mean_absolute_magnetisation_error / (lattice_dimensions ** 2)
+    absolute_magnetisations_per_spin = np.abs(np.array(magnetisations)) / (lattice_dimensions ** 2)
+    scaled_specific_heat_capacity_per_spin = scaled_specific_heat_capacity / (lattice_dimensions ** 2)
     susceptibility_per_spin = susceptibility / (lattice_dimensions ** 2)
-    magnetisations_per_spin = np.abs(np.array(magnetisations)) / (lattice_dimensions ** 2)
     
-    magnetisations_per_spin_dict = {"Absolute Magnetisations Per Spin" : magnetisations_per_spin
+    absolute_magnetisations_per_spin_dict = {"Absolute Magnetisations Per Spin" : absolute_magnetisations_per_spin
     }
-    magnetisations_per_spin_values = pd.DataFrame.from_dict(magnetisations_per_spin_dict)
-    magnetisations_per_spin_values.to_csv("Absolute_Magnetisations_Per_Spin/absolute_magnetisations_per_spin_for_temperaterature_" + str(np.round(temperature, 2)) + ".txt")
+    absolute_magnetisations_per_spin_values = pd.DataFrame.from_dict(absolute_magnetisations_per_spin_dict)
+    absolute_magnetisations_per_spin_values.to_csv("Absolute_Magnetisations_Per_Spin/absolute_magnetisations_per_spin_for_temperaterature_" + str(np.round(temperature, 2)) + ".txt")
     
-    return mean_total_energy_per_spin, mean_total_energy_error_per_spin, mean_magnetisation_per_spin, mean_magnetisation_error_per_spin, scaled_specific_heat_capacity_per_spin, susceptibility_per_spin
+    return mean_total_energy_per_spin, mean_total_energy_error_per_spin, mean_absolute_magnetisation_per_spin, mean_absolute_magnetisation_error_per_spin, scaled_specific_heat_capacity_per_spin, susceptibility_per_spin
   
   def calculate_observables_kawasaki(self):
     """"""
@@ -641,29 +640,29 @@ class SpinLattice():
     lattice_dimensions = self.get_lattice_dimensions()
     mean_total_energies_per_spin = []
     mean_total_energies_errors_per_spin = []
-    mean_magnetisations_per_spin = []
-    mean_magnetisations_errors_per_spin = []
+    mean_absolute_magnetisations_per_spin = []
+    mean_absolute_magnetisations_errors_per_spin = []
     scaled_specific_heat_capacities_per_spin = []
     susceptibilities_per_spin = []
     with_auto_correlation_times_condition = self.get_with_auto_correlation_times_condition()
     
     if with_auto_correlation_times_condition:
       auto_correlation_times = pd.read_csv("Auto_Correlation_Times/auto_correlation_times.csv")["Auto Correlation Times"].to_numpy()
-    for index, temperature in enumerate(np.linspace(1.0, 3.54, 21)):
+    for index, temperature in enumerate(np.round(np.linspace(1.0, 3.54, 21), 2)):
       self.set_temperature(temperature)
       if with_auto_correlation_times_condition:
         self.set_auto_correlation_time(auto_correlation_times[index])
         print(auto_correlation_times[index])
       if dynamical_rule == "Glauber":
         if with_auto_correlation_times_condition:
-          mean_total_energy_per_spin, mean_total_energy_error_per_spin, mean_magnetisation_per_spin, mean_magnetisation_error_per_spin, scaled_specific_heat_capacity_per_spin, susceptibility_per_spin = self.calculate_observables_glauber_with_auto_correlation_times()
+          mean_total_energy_per_spin, mean_total_energy_error_per_spin, mean_absolute_magnetisation_per_spin, mean_absolute_magnetisation_error_per_spin, scaled_specific_heat_capacity_per_spin, susceptibility_per_spin = self.calculate_observables_glauber_with_auto_correlation_times()
         else:
-          mean_total_energy_per_spin, mean_total_energy_error_per_spin, mean_magnetisation_per_spin, mean_magnetisation_error_per_spin, scaled_specific_heat_capacity_per_spin, susceptibility_per_spin = self.calculate_observables_glauber_without_auto_correlation_times()
+          mean_total_energy_per_spin, mean_total_energy_error_per_spin, mean_absolute_magnetisation_per_spin, mean_absolute_magnetisation_error_per_spin, scaled_specific_heat_capacity_per_spin, susceptibility_per_spin = self.calculate_observables_glauber_without_auto_correlation_times()
         
         mean_total_energies_per_spin.append(mean_total_energy_per_spin)
         mean_total_energies_errors_per_spin.append(mean_total_energy_error_per_spin)
-        mean_magnetisations_per_spin.append(mean_magnetisation_per_spin)
-        mean_magnetisations_errors_per_spin.append(mean_magnetisation_error_per_spin)
+        mean_absolute_magnetisations_per_spin.append(mean_absolute_magnetisation_per_spin)
+        mean_absolute_magnetisations_errors_per_spin.append(mean_absolute_magnetisation_error_per_spin)
         scaled_specific_heat_capacities_per_spin.append(scaled_specific_heat_capacity_per_spin)
         susceptibilities_per_spin.append(susceptibility_per_spin)
 
@@ -675,11 +674,11 @@ class SpinLattice():
           scaled_specific_heat_capacities_per_spin.append(scaled_specific_heat_capacity_per_spin)
           
     if dynamical_rule == "Glauber":
-      observables_dictionary = {"Temperatures": np.linspace(1.0, 3.54, 21),
+      observables_dictionary = {"Temperatures": np.round(np.linspace(1.0, 3.54, 21), 2),
                               "Mean Total Energies Per Spin" : mean_total_energies_per_spin,
                               "Mean Total Energies Errors Per Spin" : mean_total_energies_errors_per_spin,
-                              "Mean Magnetisations Per Spin" : mean_magnetisations_per_spin,
-                              "Mean Magnetisations Errors Per Spin" : mean_magnetisations_errors_per_spin,
+                              "Mean Absolute Magnetisations Per Spin" : mean_absolute_magnetisations_per_spin,
+                              "Mean Absolute Magnetisations Errors Per Spin" : mean_absolute_magnetisations_errors_per_spin,
                               "Scaled Specific Heat Capacities Per Spin" : scaled_specific_heat_capacities_per_spin,
                               "Susceptibilities Per Spin" : susceptibilities_per_spin,
                               }
@@ -726,8 +725,8 @@ class SpinLattice():
     lattice_dimensions = self.get_lattice_dimensions()
     observables_data = pd.read_csv("Glauber_Observables/glauber_observables_data.csv")
     temperatures = observables_data["Temperatures"]
-    absolute_mean_magnetisations_per_spin = np.abs(observables_data["Mean Magnetisations Per Spin"])
-    absolute_mean_magnetisations_errors_per_spin = np.abs(observables_data["Mean Magnetisations Errors Per Spin"])
+    absolute_mean_magnetisations_per_spin = observables_data["Mean Absolute Magnetisations Per Spin"]
+    absolute_mean_magnetisations_errors_per_spin = np.abs(observables_data["Mean Absolute Magnetisations Errors Per Spin"])
     
     plt.cla()
     plt.title('Absolute Mean Magnetisation Per Spin Against Temperature For Glauber Dynamics')
@@ -768,7 +767,7 @@ class SpinLattice():
     observables_data = pd.read_csv("Glauber_Observables/glauber_observables_data.csv")
     temperatures = observables_data["Temperatures"]
     susceptibilities_per_spin = observables_data["Susceptibilities Per Spin"]
-    absolute_mean_magnetisations_errors_per_spin = np.abs(observables_data["Mean Magnetisations Errors Per Spin"])
+    absolute_mean_magnetisations_errors_per_spin = np.abs(observables_data["Mean Absolute Magnetisations Errors Per Spin"])
     
     plt.cla()
     plt.title("Susceptibility Per Spin Against Temperature For Glauber Dynamics")
@@ -796,7 +795,7 @@ class SpinLattice():
     
   def calculate_correlation_function(self, temperature):
     """Calculate the correlation function values."""
-    nsweeps = self.get_nsweeps()
+    nsweeps = int(self.get_nsweeps())
     
     absolute_magnetisations_per_spin_data = pd.read_csv("Absolute_Magnetisations_Per_Spin/absolute_magnetisations_per_spin_for_temperaterature_" + str(round(temperature, 2)) + ".txt")
     absolute_magnetisations_per_spin = absolute_magnetisations_per_spin_data["Absolute Magnetisations Per Spin"]
@@ -816,7 +815,7 @@ class SpinLattice():
     Calculate the auto-correlation time by fitting the auto-correlation
     function.
     """
-    nsweeps = self.get_nsweeps()
+    nsweeps = int(self.get_nsweeps())
     sweeps = np.arange(0, nsweeps-1)
     auto_correlation_times = []
     for temperature in np.linspace(1.00, 3.54, 21):

@@ -18,7 +18,8 @@ def main():
   
   # Instantiate an object of the SpinLattice class.
   ising_model = SpinLattice(lattice_dimensions, nsweeps=nsweeps, with_auto_correlation_times_condition=with_auto_correlation_times_condition)
-  #ising_model.calculate_auto_correlation_time()
+  #if not with_auto_correlation_times_condition:
+   # ising_model.calculate_auto_correlation_time()
   
   if dynamical_rule == "Glauber":
     ising_model.calculate_observables(dynamical_rule)
