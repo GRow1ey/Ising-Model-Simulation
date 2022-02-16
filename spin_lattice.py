@@ -509,7 +509,6 @@ class SpinLattice():
     lattice_dimensions = self.get_lattice_dimensions()
     temperature = self.get_temperature()
     spin_lattice = self.get_spin_lattice()
-    initial_state = self.get_initial_state()
     total_energies = []
     magnetisations = []
     
