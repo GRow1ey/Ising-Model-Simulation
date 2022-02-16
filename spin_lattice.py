@@ -583,6 +583,11 @@ class SpinLattice():
           self.metropolis_algorithm_glauber()
 
       if sweep > 100 and not np.mod(sweep, auto_correlation_time):
+        with open("Spins_Data/Spins_Data_" + str(np.round(temperature, 2)) + "/spins_glauber_" + str(np.round(temperature, 2)) + "_sweeps=" + str(sweep) + ".dat", "a") as file_object:
+          for row in range(lattice_dimensions):
+            for column in range(lattice_dimensions):
+              file_object.write("%d %d %lf\n" % (row, column, spin_lattice[row, column]))
+              
         # Calculate the mean total energy and magnetisation 
         # of the current state.
         current_energy = self.calculate_total_energy()
