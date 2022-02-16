@@ -19,7 +19,6 @@ class SpinLattice():
     self.jtrial = 0
     self.itrial_1 = 0
     self.jtrial_1 = 0
-    self.initial_state = True
     self.with_auto_correlation_times_condition = with_auto_correlation_times_condition
     self.auto_correlation_time = 0
   
@@ -90,10 +89,6 @@ class SpinLattice():
   def set_jtrial_1(self, jtrial_1):
     """Method to update thhe jtrial_1 attribute."""
     self.jtrial_1 = jtrial_1
-    
-  def get_initial_state(self):
-    """Method to return the initial state attribute."""
-    return self.initial_state
   
   def get_auto_correlation_time(self):
     """Method to return the current auto-correlation time."""
@@ -109,36 +104,28 @@ class SpinLattice():
     to calculate the auto-correlation times.
     """
     return self.with_auto_correlation_times_condition
-  
-  def update_initial_state(self):
-    """
-    Method to change the initial state to false after the 
-    first iteration of calculating observables.
-    """
-    self.initial_state = False
       
-  def initialise_spin_lattice_kawasaki(self):
-        """
-        Initialise the spin lattice for Kawasaki dynamics
-        to allow accurate calculation of observables.
-        Half of the spins are initialised as up and half as down.
-        This is not used for animating the Ising model.
-        """
-        lattice_dimensions = self.get_lattice_dimensions()
-        spin_lattice = self.get_spin_lattice()
+  def initialise_spin_lattice(self):
+    """
+    Initialise the spin lattice for animation of the Ising model
+    to allow accurate calculation of observables.
+    Half of the spins are initialised as up and half as down.
+    """
+    lattice_dimensions = self.get_lattice_dimensions()
+    spin_lattice = self.get_spin_lattice()
 
-        for row in range(lattice_dimensions):
-                for column in range(lattice_dimensions):
-                    # Check if the sum of the current row and column of the
-                    # spin lattice is even.
-                    if(np.mod(row + column, 2) == 0):
-                        # If the sum of the current row and column is even
-                        # the spin is set to up.
-                        spin_lattice[row, column] = 1
-                        # If the sum of the current row and column is not even
-                        # the spin is set to down.
-                    else:
-                        spin_lattice[row, column] = -1
+    for row in range(lattice_dimensions):
+            for column in range(lattice_dimensions):
+                # Check if the sum of the current row and column of the
+                # spin lattice is even.
+                if(np.mod(row + column, 2) == 0):
+                    # If the sum of the current row and column is even
+                    # the spin is set to up.
+                    spin_lattice[row, column] = 1
+                    # If the sum of the current row and column is not even
+                    # the spin is set to down.
+                else:
+                    spin_lattice[row, column] = -1
     
   def calculate_spin_configuration_energy(self, itrial, jtrial):
     """
@@ -194,7 +181,10 @@ class SpinLattice():
     return sum_of_spins
   
   def select_candidate_state_glauber(self):
-    """Select a candidate state."""
+    """
+    Select a candidate state for Glauber
+    dynamics.
+    """
     lattice_dimensions = self.get_lattice_dimensions()
     
     # Select a spin randomly by generating two random
@@ -215,7 +205,10 @@ class SpinLattice():
     self.set_jtrial(jtrial)
     
   def select_candidate_state_kawasaki(self):
-    """"""
+    """
+    Select two spins at random to be switched
+    for Kawasaki dynamics.
+    """
     lattice_dimensions = self.get_lattice_dimensions()
     spin_lattice = self.get_spin_lattice()
     
@@ -247,7 +240,10 @@ class SpinLattice():
     self.set_jtrial_1(jtrial_1)
     
   def calculate_energy_difference_glauber(self):
-    """"""
+    """
+    Calculate the difference between the 
+    original state and the candidate state.
+    """
     itrial = self.get_itrial()
     jtrial = self.get_jtrial()
     
@@ -260,7 +256,10 @@ class SpinLattice():
     return energy_candidate_state - energy_current_state
   
   def nearest_neighbours_check_kawasaki(self):
-    """"""
+    """
+    Determine if the original state and candidate
+    state are nearest neighbours.
+    """
     lattice_dimensions = self.get_lattice_dimensions()
     spin_lattice = self.get_spin_lattice()
     itrial = self.get_itrial()
@@ -291,7 +290,10 @@ class SpinLattice():
       return True
     
   def calculate_energy_difference_kawasaki(self):
-    """"""
+    """
+    Calculate the energy difference from swapping 
+    two spins in the lattice.
+    """
     spin_lattice = self.get_spin_lattice()
     itrial = self.get_itrial()
     jtrial = self.get_jtrial()
@@ -310,21 +312,36 @@ class SpinLattice():
       return energy_candidate_state - energy_current_state
   
   def metropolis_algorithm_glauber(self):
-    """"""
+    """
+    Determine whether a spin flip will be accepted,
+    with probability equal to the minimum of 1 or
+    the Boltzmann weight.
+    """
     spin_lattice = self.get_spin_lattice()
     energy_difference = self.calculate_energy_difference_glauber()
     boltzmann_weight = self.calculate_boltzmann_weight(energy_difference)
     itrial = self.get_itrial()
     jtrial = self.get_jtrial()
     
+    # Generate a random number between 0 and 1.
     random_number = np.random.random()
+    
+    # If the energy difference is less than or equal
+    # to 1 the spin flip is accepted.
     if energy_difference <= 0:
       spin_lattice[itrial, jtrial] *= -1
+    # If the random number is less than or equal to
+    # the Boltzmann weight then the spin flip is
+    # also accepted.
     elif random_number <= boltzmann_weight:
       spin_lattice[itrial, jtrial] *= -1
       
   def metropolis_algorithm_kawasaki(self):
-    """"""
+    """
+    Determine whether a spin swap will be accepted
+    according to the Metropolis algorithm, i.e.
+    the minimum of 1 or the Boltzmann weight.
+    """
     spin_lattice = self.get_spin_lattice()
     energy_difference = self.calculate_energy_difference_kawasaki()
     boltzmann_weight = self.calculate_boltzmann_weight(energy_difference)
@@ -333,16 +350,26 @@ class SpinLattice():
     itrial_1 = self.get_itrial_1()
     jtrial_1 = self.get_jtrial_1()
     
+    # Generate a random number between 0 and 1.
     random_number = np.random.random()
+    
+    # If the energy difference is less than or equal
+    # to 1 the spin swap is accepted.
     if energy_difference <= 0:
       spin_lattice[itrial, jtrial] *= -1
       spin_lattice[itrial_1, jtrial_1] *= -1
+    # If the random number is less than or equal to
+    # the Boltzmann weight then the spin swap is
+    # also accepted
     elif random_number <= boltzmann_weight:
       spin_lattice[itrial, jtrial] *= -1
       spin_lattice[itrial_1, jtrial_1] *= -1
       
   def animate_ising_model_glauber(self):
-    """"""
+    """
+    Animate the Ising model using Glauber
+    dynamics.
+    """
     lattice_dimensions = self.get_lattice_dimensions()
     spin_lattice = self.get_spin_lattice()
     nsweeps = self.get_nsweeps()
@@ -382,7 +409,10 @@ class SpinLattice():
         plt.pause(0.001)
         
   def animate_ising_model_kawasaki(self):
-    """"""
+    """
+    Animate the Ising model using Kawasaki
+    dynamics.
+    """
     lattice_dimensions = self.get_lattice_dimensions()
     spin_lattice = self.get_spin_lattice()
     nsweeps = self.get_nsweeps()
@@ -442,7 +472,7 @@ class SpinLattice():
     
     mean_xi_bar = np.mean(xi_bar)
     
-    variance_xi_bar = np.var(xi_bar)
+    variance_xi_bar = np.sum(np.square(xi_bar - mean_xi_bar)) * (length_observable_data - 1) / length_observable_data
     
     return np.sqrt(variance_xi_bar) / np.sqrt(length_observable_data)
     
@@ -456,7 +486,6 @@ class SpinLattice():
     mean_energy_squared = np.square(np.mean(energies))
     
     return (mean_squared_energy - mean_energy_squared) / ((lattice_dimensions**2) * (temperature ** 2))
-    
     
   def calculate_susceptibility(self, magnetisations):
     """
@@ -472,7 +501,10 @@ class SpinLattice():
     
     
   def calculate_observables_glauber_without_auto_correlation_times(self):
-    """"""
+    """
+    Calculate the observables of the Ising model without using the
+    auto-correlation times.
+    """
     nsweeps = self.get_nsweeps()
     lattice_dimensions = self.get_lattice_dimensions()
     temperature = self.get_temperature()
@@ -481,18 +513,16 @@ class SpinLattice():
     total_energies = []
     magnetisations = []
     
-    for sweep in range(nsweeps+401):
+    for sweep in range(nsweeps+101):
       for row in range(lattice_dimensions):
         for column in range(lattice_dimensions):
           self.select_candidate_state_glauber()
           self.calculate_energy_difference_glauber()
           self.metropolis_algorithm_glauber()
-      # if not np.mod(sweep, 10) and sweep > 400: 
-      #if calculate_auto_correlation_times_decision:
       
       # Write the positions and spin values of the lattice
       # to a data file every ten sweeps.
-      if sweep > 400:
+      if sweep > 100:
         with open("Spins_Data/Spins_Data_" + str(np.round(temperature, 2)) + "/spins_glauber_" + str(np.round(temperature, 2)) + "_sweeps=" + str(sweep) + ".dat", "a") as file_object:
           for row in range(lattice_dimensions):
             for column in range(lattice_dimensions):
@@ -533,25 +563,27 @@ class SpinLattice():
     return mean_total_energy_per_spin, mean_total_energy_error_per_spin, mean_absolute_magnetisation_per_spin, mean_absolute_magnetisation_error_per_spin, scaled_specific_heat_capacity_per_spin, susceptibility_per_spin
     
   def calculate_observables_glauber_with_auto_correlation_times(self):
-    """"""
+    """
+    Calculate the observables of the Ising model using the
+    auto-correlation times.
+    """
     nsweeps = self.get_nsweeps()
     lattice_dimensions = self.get_lattice_dimensions()
     temperature = self.get_temperature()
     spin_lattice = self.get_spin_lattice()
-    initial_state = self.get_initial_state()
     auto_correlation_time = self.get_auto_correlation_time()
     
     total_energies = []
     magnetisations = []
 
-    for sweep in range(nsweeps+401):
+    for sweep in range(nsweeps+101):
       for row in range(lattice_dimensions):
         for column in range(lattice_dimensions):
           self.select_candidate_state_glauber()
           self.calculate_energy_difference_glauber()
           self.metropolis_algorithm_glauber()
 
-      if sweep > 400 and not np.mod(sweep, auto_correlation_time):
+      if sweep > 100 and not np.mod(sweep, auto_correlation_time):
         # Calculate the mean total energy and magnetisation 
         # of the current state.
         current_energy = self.calculate_total_energy()
@@ -587,33 +619,24 @@ class SpinLattice():
     return mean_total_energy_per_spin, mean_total_energy_error_per_spin, mean_absolute_magnetisation_per_spin, mean_absolute_magnetisation_error_per_spin, scaled_specific_heat_capacity_per_spin, susceptibility_per_spin
   
   def calculate_observables_kawasaki(self):
-    """"""
+    """
+    Calculate the observables of the Ising model using
+    Kawasaki dynamics.
+    """
     nsweeps = self.get_nsweeps()
     lattice_dimensions = self.get_lattice_dimensions()
     temperature = self.get_temperature()
     spin_lattice = self.get_spin_lattice()
-    initial_state = self.get_initial_state()
-    
     total_energies = []
     
-    if initial_state:
-      # Calculate the mean total energy of the initial lattice.
-      current_energy = self.calculate_total_energy()
-      
-      # Append the initial mean total energy to the list of 
-      # mean total energies 
-      total_energies.append(current_energy)
-      
-      self.update_initial_state()
-    
-    for sweep in range(nsweeps):
+    for sweep in range(nsweeps + 101):
       for row in range(lattice_dimensions):
         for column in range(lattice_dimensions):
           self.select_candidate_state_kawasaki()
           self.calculate_energy_difference_kawasaki()
           self.metropolis_algorithm_kawasaki()
           
-      if not np.mod(sweep, 10) and sweep > 400:
+      if not np.mod(sweep, 10) and sweep > 100:
         # Calculate the mean total energy and magnetisation 
         # of the current state.
         current_energy = self.calculate_total_energy()
@@ -636,7 +659,11 @@ class SpinLattice():
     return mean_total_energy_per_spin, mean_total_energy_error_per_spin, scaled_specific_heat_capacity_per_spin
     
   def calculate_observables(self, dynamical_rule):
-    """"""
+    """
+    Calculate the observables of the Ising model
+    for temperatures between 1.0 and 3.54 using
+    either Glauber or Kawasaki dynamics.
+    """
     lattice_dimensions = self.get_lattice_dimensions()
     mean_total_energies_per_spin = []
     mean_total_energies_errors_per_spin = []
@@ -807,7 +834,10 @@ class SpinLattice():
     return np.abs(np.array(correlation_values))
   
   def auto_correlation_time_exponential(self, sweeps, tau):
-    """"""
+    """
+    The exponential distribution representing the
+    auto-correlation function.
+    """
     return np.exp(-sweeps/tau)
     
   def calculate_auto_correlation_time(self):
