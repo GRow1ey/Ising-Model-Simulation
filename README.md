@@ -1,2 +1,2 @@
-# MPhys_Project
-Statistical Physics and Machine Learning Masters Project
+# Ising Model Simulation
+Statistical Physics and Machine Learning Project
