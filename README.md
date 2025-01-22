@@ -2,7 +2,7 @@
 
 This repository contains code to simulate the Ising model using both Glauber and Kawasaki dynamics. The simulation calculates various observables and plots them against temperature. The code is organized into several Python scripts and a main class
 
-SpinLattice
+SpinLattice.py
 
 that handles the simulation logic.
 
