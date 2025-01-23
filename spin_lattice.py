@@ -51,7 +51,10 @@ class SpinLattice():
     self.temperature = temperature
     
   def get_J(self):
-    """Method to return J."""
+    """
+    Method to return J which is the interaction strength 
+    between nearest neighbor spins <i,j>.
+    """
     return self.J
 
   def get_nsweeps(self):
@@ -87,7 +90,7 @@ class SpinLattice():
     return self.jtrial_1
   
   def set_jtrial_1(self, jtrial_1):
-    """Method to update thhe jtrial_1 attribute."""
+    """Method to update the jtrial_1 attribute."""
     self.jtrial_1 = jtrial_1
   
   def get_auto_correlation_time(self):
