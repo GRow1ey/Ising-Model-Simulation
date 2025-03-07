@@ -1,22 +1,24 @@
 # Advanced Simulation of the Ising Model with Neural Network Integration
 
-Description: This project involves the simulation of the Ising model, a fundamental mathematical model of ferromagnetism, utilizing both Glauber and Kawasaki dynamics. The simulation is designed to calculate various physical observables and plot them against temperature, providing a comprehensive analysis of the system's behavior.
+**Description:** This project involves the simulation of the Ising model, a fundamental mathematical model of ferromagnetism, utilizing both Glauber and Kawasaki dynamics. The simulation is designed to calculate various physical observables and plot them against temperature, providing a comprehensive analysis of the system's behavior.
 
-The codebase is meticulously organized into several Python scripts, with a central class, SpinLattice, that manages the core simulation logic. This modular approach ensures clarity and ease of maintenance.
+The codebase is meticulously organized into several Python scripts, with a central class, `SpinLattice`, that manages the core simulation logic. This modular approach ensures clarity and ease of maintenance.
 
-Key Features:
+## Key Features:
 
-Dynamic Simulation: Implementation of both Glauber and Kawasaki dynamics to simulate the Ising model.
-Comprehensive Analysis: Calculation and plotting of physical observables against temperature to study the system's properties.
-Modular Codebase: Organized Python scripts with a main class, SpinLattice, for streamlined simulation management.
-Future Enhancements: I plan to enhance this project by integrating machine learning techniques. Specifically, I aim to train a neural network on the simulation data to perform image classification. This neural network will be capable of identifying the temperature of spin particles within the simulation based on grids of black and white squares representing spin particles.
+* Dynamic Simulation: Implementation of both Glauber and Kawasaki dynamics to simulate the Ising model.
+* Comprehensive Analysis: Calculation and plotting of physical observables against temperature to study the system's properties.
+* Modular Codebase: Organized Python scripts with a main class, `SpinLattice`, for streamlined simulation management.
 
-Technologies Used:
+**Future Enhancements:** I plan to enhance this project by integrating machine learning techniques. Specifically, I aim to train a neural network on the simulation data to perform image classification. This neural network will be capable of identifying the temperature of spin particles within the simulation based on grids of black and white squares representing spin particles.
 
-Python
-Matplotlib (for plotting)
-NumPy (for numerical calculations)
-TensorFlow/PyTorch (for future neural network integration)
+## Technologies Used:
+
+* Python
+* Matplotlib (for plotting)
+* NumPy (for numerical calculations)
+* TensorFlow/PyTorch (for future neural network integration)
+  
 This project not only demonstrates my proficiency in computational physics and Python programming but also showcases my ability to integrate advanced machine learning techniques to enhance simulation analysis.
 
 ## Folder Structure
